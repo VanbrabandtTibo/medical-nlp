@@ -1,34 +1,20 @@
-const getExtract = async (text) => {
-	const url = `http://127.0.0.1:8000/process-text/${text}`;
-
-	let result = await fetch(url)
-	.then((response) => response.json())
-	.then((data) => data);
-
-	return result;	
-};
-
-const textareaIn = document.querySelector('.js-input');
-const textareaOut = document.querySelector('.js-output');
-
 async function submit() {
-    const inputText = textareaIn.value;
-    const response = await fetch("http://127.0.0.1:8000/entity-info", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ text: inputText }),
-    });
-    const json = await response.json();
-    let output = "";
-    for (const sentence of json.sentences) {
-      for (const entity of sentence) {
-        output += `${entity.text} (${entity.label})\n`;
-      }
-      output += "\n";
-    }
-    textareaOut.value = output;
+  const inputText = document.querySelector('.js-input').value;
+  const response = await fetch("http://127.0.0.1:8000/entity-info-check/", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({ text : inputText }),
+  });
+  const json = await response.json();
+  let output = "";
+  for (const entity of json.sentences) {
+    output += `${entity.text} `;
+  }
+
+  const textareaOut = document.querySelector('.js-output');
+  textareaOut.value = output;
 }
 
 const showResult = function(jsonObject){
@@ -39,7 +25,7 @@ const showResult = function(jsonObject){
 document.addEventListener('DOMContentLoaded', function(){
     console.log('DOM geladen');
 
-    document.querySelector('.js-extract').addEventListener('click', function(){
+    document.querySelector('.js-extract').addEventListener('click', async function(){
         //var text = document.querySelector('.js-input').value;
         //console.log(text);
 
@@ -50,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function(){
         //document.querySelector('.js-output').value = extractedText.report;
         //console.log(extractedText.report)
         
-        submit()
+        await submit()
     });
 
     let SpeechRecognition = window.webkitSpeechRecognition;
@@ -84,13 +70,10 @@ document.addEventListener('DOMContentLoaded', function(){
         const playBtn = document.querySelector('.js-play')
         playBtn.addEventListener('click', () => recognition.start());
 
-        const pauseBtn = document.querySelector('.js-pause')
-
+        const pauseBtn = document.querySelector('.js-pause');
         pauseBtn.addEventListener('click', async function(){
-            recognition.stop()
-            var text = document.querySelector('.js-input').value;
-            const extractedText = await getExtract(text);
-            document.querySelector('.js-output').value = extractedText.report;
+            recognition.stop();
+            await submit();
         });
     })
     .catch(console.error);

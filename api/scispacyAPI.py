@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Body
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import spacy
@@ -16,7 +16,7 @@ app.add_middleware(
 )
 
 @app.post("/entity-info")
-def entity_info(text: str):
+async def entity_info(text: str):
     doc = md_nlp(text)
     sentences = [sent for sent in doc.sents]
     entities_per_sentence = []
@@ -25,9 +25,9 @@ def entity_info(text: str):
         entities = [{"text": ent.text, "label": ent.label_} for ent in sent_doc.ents]
         entities_per_sentence.append(entities)
     return {"sentences": entities_per_sentence}
- 
-@app.post("/entity-info-check")
-def entity_info(text: str):
+
+@app.post("/entity-info-check/")
+async def entity_info_check(text: str = Body(..., embed=True)):
     doc = md_nlp(text)
     sentences = [sent for sent in doc.sents]
     entities_per_sentence = []
